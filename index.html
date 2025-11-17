@@ -410,7 +410,10 @@
 
     <!-- 4. JavaScript Aplikasi Utama -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Ganti dari 'DOMContentLoaded' ke 'load'
+        // 'load' menunggu semua sumber daya (termasuk skrip eksternal seperti Lucide)
+        // untuk selesai dimuat. Ini akan memperbaiki error 'lucide is not defined'.
+        window.addEventListener('load', () => {
 
             // --- KONSTANTA ---
             const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyzzkPH5c-sSSvGtxOZthC3yZx7XtdFgBdAiCXw1kR9_OwO7SAwFRGuwcozlq5oxeDG8Q/exec';
@@ -805,7 +808,10 @@
             function renderModalItems() {
                 modalItemList.innerHTML = state.modalItemsList.map(renderModalItemRow).join('');
                 // Panggil createIcons() lagi untuk merender ikon trash yang baru
-                lucide.createIcons();
+                // TAMBAHKAN PENGECEKAN: Pastikan 'lucide' ada sebelum memanggilnya
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
             }
             
             function addModalItemRow() {
@@ -1040,7 +1046,13 @@
             modalItemList.addEventListener('click', handleModalListEvent);
             
             // --- INISIALISASI ---
-            lucide.createIcons();
+            // Panggil createIcons() sekarang karena kita tahu 'lucide' sudah dimuat
+            // TAMBAHKAN PENGECEKAN: Pastikan 'lucide' ada sebelum memanggilnya
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            } else {
+                console.error("Skrip ikon Lucide gagal dimuat.");
+            }
             fetchData();
         });
     </script>
