@@ -6,8 +6,8 @@
     <title>PayBoss Inventory</title>
     <!-- 1. Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Memuat Ikon Lucide -->
-    <script src="https://unpkg.com/lucide@latest/dist/lucide.min.js"></script>
+    <!-- 2. Memuat Ikon Lucide (Mengganti unpkg ke jsdelivr untuk stabilitas) -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script>
     <!-- 3. Konfigurasi Font & Style Tambahan -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -521,8 +521,34 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const data = await response.json();
-                    state.items = data.items;
-                    state.transactions = data.transactions;
+
+                    // --- PERBAIKAN DIMULAI DI SINI ---
+                    // Memastikan data yang diterima adalah array, jika tidak, gunakan array kosong
+                    const itemsData = Array.isArray(data.items) ? data.items : [];
+                    const txData = Array.isArray(data.transactions) ? data.transactions : [];
+
+                    // Parse string 'items_json' dari Google Sheet menjadi array 'items'
+                    const parsedTransactions = txData.map(txn => {
+                        let itemsArray = [];
+                        // 'items_json' adalah nama kolom di Google Sheet
+                        if (txn.items_json) { 
+                            try {
+                                // Ubah string JSON menjadi array
+                                itemsArray = JSON.parse(txn.items_json);
+                            } catch (parseError) {
+                                console.error(`Gagal parse items_json for txn ${txn.id}:`, parseError, txn.items_json);
+                            }
+                        }
+                        // Kembalikan objek transaksi dengan properti 'items' yang sudah menjadi array
+                        return {
+                            ...txn,
+                            items: itemsArray 
+                        };
+                    });
+                    // --- PERBAIKAN SELESAI ---
+
+                    state.items = itemsData;
+                    state.transactions = parsedTransactions; // Gunakan data transaksi yang sudah di-parse
                     
                     updateDatalist();
                     renderAll();
